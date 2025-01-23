@@ -14,8 +14,14 @@ class TestRoutes(TestCase):
     @classmethod
     def setUpTestData(cls):
         # Создаём пользователя, который будет владельцем заметки.
-        cls.author = User.objects.create_user(username='author', password='password')
-        cls.reader = User.objects.create_user(username='reader', password='password')
+        cls.author = User.objects.create_user(
+            username='author',
+            password='password'
+        )
+        cls.reader = User.objects.create_user(
+            username='reader',
+            password='password'
+        )
 
         cls.note = Note.objects.create(
             title='Тестовая заметка',
@@ -37,18 +43,16 @@ class TestRoutes(TestCase):
 
         for name, args in urls:
             with self.subTest(name=name):
-                # Проверяем доступность страниц для авторизованного пользователя
                 self.client.force_login(self.author)
                 url = reverse(name, args=args)
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
-                if name == 'notes:home':  # Главная страница
+                if name == 'notes:home':
                     response = self.client.get(reverse(name))
                     self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_redirect_for_anonymous_client(self):
-        # Проверяем, что анонимный пользователь перенаправляется на страницу входа при попытке редактирования или удаления.
         login_url = reverse('users:login')
 
         for name in ('notes:edit', 'notes:delete'):
@@ -59,7 +63,6 @@ class TestRoutes(TestCase):
                 self.assertRedirects(response, redirect_url)
 
     def test_availability_for_author(self):
-        # Проверка доступности страниц для пользователя, создавшего заметку.
         self.client.force_login(self.author)
 
         for name in ('notes:edit', 'notes:delete'):
@@ -69,7 +72,6 @@ class TestRoutes(TestCase):
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_availability_for_reader(self):
-        # Проверка, что пользователь, не являющийся автором, не может редактировать или удалять заметки.
         self.client.force_login(self.reader)
 
         for name in ('notes:edit', 'notes:delete'):

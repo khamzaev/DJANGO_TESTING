@@ -65,7 +65,9 @@ class TestNoteCreate(TestCase):
     def test_create_note_valid_form(self):
         self.client.login(username='testuser', password='password')
         data = {
-            'title': 'Тестовая заметка', 'text': 'Текст заметки', 'slug': 'test-slug'
+            'title': 'Тестовая заметка',
+            'text': 'Текст заметки',
+            'slug': 'test-slug'
         }
         response = self.client.post(self.CREATE_NOTE_URL, data)
         self.assertRedirects(response, reverse('notes:success'))
