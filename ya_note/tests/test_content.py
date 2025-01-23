@@ -12,7 +12,6 @@ class TestHomePage(TestCase):
 
     def test_home_page(self):
         response = self.client.get(self.HOME_URL)
-        # Проверяем, что главная страница загружается с кодом 200
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'notes/home.html')
 
@@ -22,8 +21,10 @@ class TestNotesList(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser', password='password')
-        # Создаём 5 заметок для пользователя.
+        cls.user = User.objects.create_user(
+            username='testuser',
+            password='password'
+        )
         for i in range(5):
             Note.objects.create(
                 title=f'Заметка {i}',
@@ -32,9 +33,11 @@ class TestNotesList(TestCase):
             )
 
     def test_notes_list(self):
-        self.client.login(username='testuser', password='password')
+        self.client.login(
+            username='testuser',
+            password='password'
+        )
         response = self.client.get(self.NOTES_LIST_URL)
-        # Проверяем, что на странице отобразится 5 заметок.
         self.assertEqual(len(response.context['object_list']), 5)
 
 
@@ -43,7 +46,10 @@ class TestNoteCreate(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser', password='password')
+        cls.user = User.objects.create_user(
+            username='testuser',
+            password='password'
+        )
 
     def test_create_note_anonymous_user(self):
         response = self.client.get(self.CREATE_NOTE_URL)
@@ -58,10 +64,11 @@ class TestNoteCreate(TestCase):
 
     def test_create_note_valid_form(self):
         self.client.login(username='testuser', password='password')
-        data = {'title': 'Тестовая заметка', 'text': 'Текст заметки', 'slug': 'test-slug'}
+        data = {
+            'title': 'Тестовая заметка', 'text': 'Текст заметки', 'slug': 'test-slug'
+        }
         response = self.client.post(self.CREATE_NOTE_URL, data)
         self.assertRedirects(response, reverse('notes:success'))
-        # Проверяем, что заметка была создана
         self.assertEqual(Note.objects.count(), 1)
         self.assertEqual(Note.objects.first().title, 'Тестовая заметка')
 
@@ -69,9 +76,15 @@ class TestNoteCreate(TestCase):
 class TestNoteUpdate(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser', password='password')
+        cls.user = User.objects.create_user(
+            username='testuser',
+            password='password'
+        )
         cls.note = Note.objects.create(
-            title='Тестовая заметка', text='Текст заметки', author=cls.user, slug='test-slug'
+            title='Тестовая заметка',
+            text='Текст заметки',
+            author=cls.user,
+            slug='test-slug'
         )
         cls.update_url = reverse('notes:edit', args=[cls.note.slug])
 
@@ -83,11 +96,17 @@ class TestNoteUpdate(TestCase):
 
     def test_update_note_anonymous_user(self):
         response = self.client.get(self.update_url)
-        self.assertRedirects(response, f'/auth/login/?next={self.update_url}')
+        self.assertRedirects(
+            response,
+            f'/auth/login/?next={self.update_url}'
+        )
 
     def test_update_note_valid_form(self):
         self.client.login(username='testuser', password='password')
-        data = {'title': 'Обновлённая заметка', 'text': 'Обновлённый текст', 'slug': 'updated-slug'}
+        data = {
+            'title': 'Обновлённая заметка',
+            'text': 'Обновлённый текст', 'slug': 'updated-slug'
+        }
         response = self.client.post(self.update_url, data)
         self.assertRedirects(response, reverse('notes:success'))
         updated_note = Note.objects.get(id=self.note.id)
@@ -98,9 +117,15 @@ class TestNoteUpdate(TestCase):
 class TestNoteDelete(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser', password='password')
+        cls.user = User.objects.create_user(
+            username='testuser',
+            password='password'
+        )
         cls.note = Note.objects.create(
-            title='Заметка для удаления', text='Текст заметки для удаления', author=cls.user, slug='delete-slug'
+            title='Заметка для удаления',
+            text='Текст заметки для удаления',
+            author=cls.user,
+            slug='delete-slug'
         )
         cls.delete_url = reverse('notes:delete', args=[cls.note.slug])
 
@@ -112,22 +137,30 @@ class TestNoteDelete(TestCase):
 
     def test_delete_note_anonymous_user(self):
         response = self.client.get(self.delete_url)
-        self.assertRedirects(response, f'/auth/login/?next={self.delete_url}')
+        self.assertRedirects(
+            response,
+            f'/auth/login/?next={self.delete_url}'
+        )
 
     def test_delete_note_valid_post(self):
         self.client.login(username='testuser', password='password')
         response = self.client.post(self.delete_url)
         self.assertRedirects(response, reverse('notes:success'))
-        # Проверяем, что заметка была удалена
         self.assertEqual(Note.objects.count(), 0)
 
 
 class TestNoteDetail(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser', password='password')
+        cls.user = User.objects.create_user(
+            username='testuser',
+            password='password'
+        )
         cls.note = Note.objects.create(
-            title='Тестовая заметка', text='Текст заметки', author=cls.user, slug='test-slug'
+            title='Тестовая заметка',
+            text='Текст заметки',
+            author=cls.user,
+            slug='test-slug'
         )
         cls.detail_url = reverse('notes:detail', args=[cls.note.slug])
 

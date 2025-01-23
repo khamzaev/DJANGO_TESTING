@@ -76,20 +76,27 @@ def test_user_cant_use_bad_words(auth_client, news):
     assert Comment.objects.count() == 0
 
 
-
 @pytest.fixture
 def author():
-    return User.objects.create(username='Автор комментария')
+    return User.objects.create(
+        username='Автор комментария'
+    )
 
 
 @pytest.fixture
 def reader():
-    return User.objects.create(username='Читатель')
+    return User.objects.create(
+        username='Читатель'
+    )
 
 
 @pytest.fixture
 def comment(news, author):
-    return Comment.objects.create(news=news, author=author, text='Текст комментария')
+    return Comment.objects.create(
+        news=news,
+        author=author,
+        text='Текст комментария'
+    )
 
 
 @pytest.fixture

@@ -6,7 +6,9 @@ from pytils.translit import slugify
 from ya_note.notes.models import Note
 from ya_note.notes.forms import WARNING
 
+
 User = get_user_model()
+
 
 class TestNoteCreation(TestCase):
     ADD_NOTE_URL = reverse('notes:add')
@@ -22,7 +24,10 @@ class TestNoteCreation(TestCase):
         self.auth_client.force_login(self.user)
 
     def test_user_can_create_note(self):
-        response = self.auth_client.post(self.ADD_NOTE_URL, data=self.form_data)
+        response = self.auth_client.post(
+            self.ADD_NOTE_URL,
+            data=self.form_data
+        )
         self.assertRedirects(response, reverse('notes:success'))
 
         new_note = Note.objects.filter(slug=self.form_data['slug']).first()
@@ -42,14 +47,20 @@ class TestNoteCreation(TestCase):
     def test_slug_unique(self):
         # Создание первой заметки с тем же slug
         self.auth_client.post(self.ADD_NOTE_URL, data=self.form_data)
-        response = self.auth_client.post(self.ADD_NOTE_URL, data=self.form_data)
+        response = self.auth_client.post(
+            self.ADD_NOTE_URL,
+            data=self.form_data
+        )
         form = response.context['form']
         warning = self.form_data['slug'] + WARNING
         self.assertIn(warning, form.errors['slug'])
 
     def test_fill_slug(self):
         del self.form_data['slug']
-        response = self.auth_client.post(self.ADD_NOTE_URL, data=self.form_data)
+        response = self.auth_client.post(
+            self.ADD_NOTE_URL,
+            data=self.form_data
+        )
         self.assertRedirects(response, reverse('notes:success'))
 
         expected_slug = slugify(self.form_data['title'])
@@ -82,7 +93,10 @@ class TestNoteEditDelete(TestCase):
         )
         self.edit_note_url = reverse('notes:edit', args=[self.note.slug])
         self.delete_note_url = reverse('notes:delete', args=[self.note.slug])
-        self.form_data = {'title': self.NEW_NOTE_TITLE, 'text': self.NEW_NOTE_TEXT}
+        self.form_data = {
+            'title': self.NEW_NOTE_TITLE,
+            'text': self.NEW_NOTE_TEXT
+        }
 
     def test_author_can_edit_note(self):
         # Автор может отредактировать заметку
@@ -93,7 +107,10 @@ class TestNoteEditDelete(TestCase):
 
     def test_other_user_cant_edit_note(self):
         # Другой пользователь не может редактировать заметку
-        response = self.reader_client.post(self.edit_note_url, self.form_data)
+        response = self.reader_client.post(
+            self.edit_note_url,
+            self.form_data
+        )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
         note_from_db = Note.objects.get(id=self.note.id)
