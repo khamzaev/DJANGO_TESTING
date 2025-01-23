@@ -2,8 +2,8 @@ import pytest
 from http import HTTPStatus
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from news.models import Comment, News
-from news.forms import BAD_WORDS, WARNING
+from ya_news.news.models import Comment, News
+from ya_news.news.forms import BAD_WORDS, WARNING
 from django.test import Client
 
 User = get_user_model()
