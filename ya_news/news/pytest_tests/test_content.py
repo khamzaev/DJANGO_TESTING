@@ -4,10 +4,10 @@ from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from django.test import Client
-from ya_news.news.models import Comment, News
-from ya_news.news.forms import CommentForm
 from django.contrib.auth import get_user_model
 
+from news.forms import CommentForm
+from news.models import Comment, News
 
 User = get_user_model()
 

@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from ya_note.notes.models import Note
+from note.notes.models import Note
 
 
 User = get_user_model()
