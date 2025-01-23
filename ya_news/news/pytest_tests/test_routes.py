@@ -2,7 +2,7 @@ from http import HTTPStatus
 import pytest
 from django.urls import reverse
 from pytest_django.asserts import assertRedirects
-from ya_news.news.models import Comment, News
+from news.models import Comment, News
 from django.contrib.auth import get_user_model
 
 

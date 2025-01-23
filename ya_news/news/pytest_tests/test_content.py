@@ -6,8 +6,8 @@ from django.utils import timezone
 from django.test import Client
 from django.contrib.auth import get_user_model
 
-from ya_news.news.forms import CommentForm
-from ya_news.news.models import Comment, News
+from news.forms import CommentForm
+from news.models import Comment, News
 
 User = get_user_model()
 
