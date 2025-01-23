@@ -3,8 +3,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
 from pytils.translit import slugify
-from ya_note.notes.models import Note
-from ya_note.notes.forms import WARNING
+from notes.models import Note
+from notes.forms import WARNING
 
 
 User = get_user_model()
