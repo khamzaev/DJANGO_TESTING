@@ -1,14 +1,13 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.contrib.auth import get_user_model
+from notes.models import Note
 from django.conf import settings
 
-from notes.models import Note
-from .common import user, note
+User = get_user_model()
 
 
 class TestHomePage(TestCase):
-    """Тесты для домашней страницы."""
-
     HOME_URL = reverse('notes:home')
 
     def test_home_page(self):
@@ -18,40 +17,49 @@ class TestHomePage(TestCase):
 
 
 class TestNotesList(TestCase):
-    """Тесты для страницы списка заметок."""
-
     NOTES_LIST_URL = reverse('notes:list')
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.user = user()
-        cls.notes = [
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='password'
+        )
+        for i in range(5):
             Note.objects.create(
                 title=f'Заметка {i}',
                 text=f'Текст заметки {i}',
-                author=cls.user
+                author=self.user
             )
-            for i in range(5)
-        ]
 
     def test_notes_list(self):
-        self.client.login(username='testuser', password='password')
+        """Сравниваем количество заметок в базе с количеством в контексте."""
+        self.client.login(
+            username='testuser',
+            password='password'
+        )
         response = self.client.get(self.NOTES_LIST_URL)
-        notes_count = Note.objects.count()
-        self.assertEqual(len(response.context['object_list']), notes_count)
+        db_notes_count = Note.objects.count()
+        self.assertEqual(len(response.context['object_list']), db_notes_count)
 
 
 class TestNoteCreate(TestCase):
-    """Тесты для создания заметки."""
-
     CREATE_NOTE_URL = reverse('notes:add')
 
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(
+            username='testuser',
+            password='password'
+        )
+
     def test_create_note_anonymous_user(self):
+        """Проверяем, что анонимный пользователь перенаправляется на страницу входа."""
         response = self.client.get(self.CREATE_NOTE_URL)
         expected_url = f"{settings.LOGIN_URL}?next={self.CREATE_NOTE_URL}"
         self.assertRedirects(response, expected_url)
 
     def test_create_note_authenticated_user(self):
+        """Проверяем доступность страницы создания заметки для авторизованного пользователя."""
         self.client.login(username='testuser', password='password')
         response = self.client.get(self.CREATE_NOTE_URL)
         self.assertEqual(response.status_code, 200)
@@ -59,12 +67,18 @@ class TestNoteCreate(TestCase):
 
 
 class TestNoteUpdate(TestCase):
-    """Тесты для редактирования заметки."""
-
     @classmethod
     def setUpTestData(cls):
-        cls.user = user()
-        cls.note = note(cls.user)
+        cls.user = User.objects.create_user(
+            username='testuser',
+            password='password'
+        )
+        cls.note = Note.objects.create(
+            title='Тестовая заметка',
+            text='Текст заметки',
+            author=cls.user,
+            slug='test-slug'
+        )
         cls.update_url = reverse('notes:edit', args=[cls.note.slug])
 
     def test_update_note_authenticated_user(self):
@@ -74,19 +88,54 @@ class TestNoteUpdate(TestCase):
         self.assertTemplateUsed(response, 'notes/form.html')
 
     def test_update_note_anonymous_user(self):
+        """Проверяем, что анонимный пользователь перенаправляется на страницу входа."""
         response = self.client.get(self.update_url)
         login_url = reverse('users:login')
-        expected_url = f'{login_url}?next={self.update_url}'
-        self.assertRedirects(response, expected_url)
+        self.assertRedirects(
+            response,
+            f'{login_url}?next={self.update_url}'
+        )
+
+    def test_update_note_valid_form(self):
+        """Проверяем, что авторизованный пользователь может обновить заметку."""
+
+        response = self.client.get(self.update_url)
+
+        if not self.client.session:
+            login_url = reverse('users:login')
+            self.assertRedirects(
+                response,
+                f'{login_url}?next={self.update_url}'
+            )
+            return
+
+        data = {
+            'title': 'Обновлённая заметка',
+            'text': 'Обновлённый текст',
+            'slug': 'updated-slug'
+        }
+        response = self.client.post(self.update_url, data)
+
+        self.assertRedirects(response, reverse('notes:success'))
+
+        updated_note = Note.objects.get(id=self.note.id)
+        self.assertEqual(updated_note.title, 'Обновлённая заметка')
+        self.assertEqual(updated_note.text, 'Обновлённый текст')
 
 
 class TestNoteDelete(TestCase):
-    """Тесты для удаления заметки."""
-
     @classmethod
     def setUpTestData(cls):
-        cls.user = user()
-        cls.note = note(cls.user)
+        cls.user = User.objects.create_user(
+            username='testuser',
+            password='password'
+        )
+        cls.note = Note.objects.create(
+            title='Заметка для удаления',
+            text='Текст заметки для удаления',
+            author=cls.user,
+            slug='delete-slug'
+        )
         cls.delete_url = reverse('notes:delete', args=[cls.note.slug])
 
     def test_delete_note_authenticated_user(self):
@@ -94,3 +143,41 @@ class TestNoteDelete(TestCase):
         response = self.client.get(self.delete_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'notes/delete.html')
+
+    def test_delete_note_anonymous_user(self):
+        response = self.client.get(self.delete_url)
+        self.assertRedirects(
+            response,
+            f'/auth/login/?next={self.delete_url}'
+        )
+
+    def test_delete_note_valid_post(self):
+        self.client.login(username='testuser', password='password')
+        response = self.client.post(self.delete_url)
+        self.assertRedirects(response, reverse('notes:success'))
+        self.assertEqual(Note.objects.count(), 0)
+
+
+class TestNoteDetail(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(
+            username='testuser',
+            password='password'
+        )
+        cls.note = Note.objects.create(
+            title='Тестовая заметка',
+            text='Текст заметки',
+            author=cls.user,
+            slug='test-slug'
+        )
+        cls.detail_url = reverse('notes:detail', args=[cls.note.slug])
+
+    def test_note_detail(self):
+        self.client.login(username='testuser', password='password')
+
+        response = self.client.get(self.detail_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'notes/detail.html')
+        self.assertIn('note', response.context)
+        self.assertEqual(response.context['note'], self.note)

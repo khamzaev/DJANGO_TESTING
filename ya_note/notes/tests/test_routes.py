@@ -28,27 +28,43 @@ class TestRoutes(TestCase):
             author=cls.author
         )
 
-    def test_pages_availability(self):
-        urls = (
-            ('notes:home', None),
-            ('notes:add', None),
-            ('notes:edit', (self.note.slug,)),
-            ('notes:detail', (self.note.slug,)),
-            ('notes:delete', (self.note.slug,)),
-            ('notes:list', None),
-            ('notes:success', None),
-        )
-
-        for name, args in urls:
+    def test_pages_availability_and_redirects(self):
+        for name, args in (
+                ('notes:home', None),
+                ('notes:add', None),
+                ('notes:edit', (self.note.slug,)),
+                ('notes:detail', (self.note.slug,)),
+                ('notes:delete', (self.note.slug,)),
+                ('notes:list', None),
+                ('notes:success', None),
+        ):
             with self.subTest(name=name):
                 self.client.force_login(self.author)
                 url = reverse(name, args=args)
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
-                if name == 'notes:home':
-                    response = self.client.get(reverse(name))
-                    self.assertEqual(response.status_code, HTTPStatus.OK)
+                self.client.logout()
+                response = self.client.get(url)
+                if name == 'notes:add':
+                    login_url = reverse('users:login')
+                    redirect_url = f'{login_url}?next={url}'
+                    self.assertRedirects(response, redirect_url)
+                elif name == 'notes:detail':
+                    redirect_url = f'{reverse("users:login")}?next={url}'
+                    self.assertRedirects(response, redirect_url)
+                elif name == 'notes:list':
+                    redirect_url = f'{reverse("users:login")}?next={url}'
+                    self.assertRedirects(response, redirect_url)
+                elif name in ('notes:edit', 'notes:delete'):
+                    self.assertRedirects(response, reverse('users:login') + f'?next={url}')
+
+        self.client.force_login(self.reader)
+        for name in ('notes:edit', 'notes:delete'):
+            with self.subTest(name=name):
+                url = reverse(name, args=(self.note.slug,))
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     def test_redirect_for_anonymous_client(self):
         login_url = reverse('users:login')
@@ -59,21 +75,3 @@ class TestRoutes(TestCase):
                 redirect_url = f'{login_url}?next={url}'
                 response = self.client.get(url)
                 self.assertRedirects(response, redirect_url)
-
-    def test_availability_for_author(self):
-        self.client.force_login(self.author)
-
-        for name in ('notes:edit', 'notes:delete'):
-            with self.subTest(name=name):
-                url = reverse(name, args=(self.note.slug,))
-                response = self.client.get(url)
-                self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_availability_for_reader(self):
-        self.client.force_login(self.reader)
-
-        for name in ('notes:edit', 'notes:delete'):
-            with self.subTest(name=name):
-                url = reverse(name, args=(self.note.slug,))
-                response = self.client.get(url)
-                self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
