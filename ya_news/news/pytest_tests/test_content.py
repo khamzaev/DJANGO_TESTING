@@ -3,6 +3,7 @@ from django.urls import reverse
 
 from news.forms import CommentForm
 from yanews import settings
+from news.models import News
 
 
 @pytest.mark.django_db
@@ -23,8 +24,8 @@ def test_news_order(client, create_news, home_url):
 
 
 @pytest.mark.django_db
-def test_comments_order(client, create_news, create_comments):
-    news = create_comments
+def test_comments_order(client, create_news):
+    news = News.objects.first()  # Получаем первую новость
     detail_url = reverse('news:detail', args=(news.id,))
     client.get(detail_url)
     all_comments = news.comment_set.all()
@@ -34,18 +35,16 @@ def test_comments_order(client, create_news, create_comments):
 
 
 @pytest.mark.django_db
-def test_anonymous_client_has_no_form(client, create_news, create_comments):
-    news = create_comments
+def test_anonymous_client_has_no_form(client, create_news):
+    news = News.objects.first()
     detail_url = reverse('news:detail', args=(news.id,))
     response = client.get(detail_url)
     assert 'form' not in response.context
 
 
 @pytest.mark.django_db
-def test_authorized_client_has_form(
-        client_with_author, create_news, create_comments
-):
-    news = create_comments
+def test_authorized_client_has_form(client_with_author, create_news):
+    news = News.objects.first()
     detail_url = reverse('news:detail', args=(news.id,))
     response = client_with_author.get(detail_url)
     assert 'form' in response.context

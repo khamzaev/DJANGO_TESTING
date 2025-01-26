@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from datetime import datetime, timedelta
 from django.conf import settings
@@ -13,9 +15,17 @@ User = get_user_model()
 
 
 @pytest.fixture
-def create_user():
+def unique(request):
+    """Фикстура для создания уникальных значений"""
+    def _unique(prefix):
+        return f"{prefix}_{uuid.uuid4().hex}"
+    return _unique
+
+@pytest.fixture
+def create_user(unique):
+    username = unique('username')
     return User.objects.create_user(
-        username='Комментатор',
+        username=username,
         password='password'
     )
 
@@ -52,7 +62,6 @@ def create_comments(create_news):
         username='Комментатор',
         password='password'
     )
-
     news = News.objects.first()
     now = timezone.now()
 
@@ -62,14 +71,6 @@ def create_comments(create_news):
         )
         comment.created = now + timedelta(days=index)
         comment.save()
-
-
-@pytest.fixture
-def client_with_author(create_comments):
-    author = User.objects.get(username='Комментатор')
-    client = Client()
-    client.force_login(author)
-    return client
 
 
 @pytest.fixture
@@ -130,4 +131,4 @@ def author_client(author):
 @pytest.fixture
 def reader_client(reader, client):
     client.force_login(reader)
-    return
+    return client
