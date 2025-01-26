@@ -26,7 +26,7 @@ def test_news_order(client, create_news, home_url):
 def test_comments_order(client, create_news, create_comments):
     news = create_comments
     detail_url = reverse('news:detail', args=(news.id,))
-    response = client.get(detail_url)
+    client.get(detail_url)
     all_comments = news.comment_set.all()
     all_timestamps = [comment.created for comment in all_comments]
     sorted_timestamps = sorted(all_timestamps)

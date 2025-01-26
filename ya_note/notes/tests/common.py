@@ -1,5 +1,6 @@
 import pytest
 from django.contrib.auth import get_user_model
+
 from notes.models import Note
 
 
@@ -13,6 +14,7 @@ def user():
         username='testuser',
         password='password'
     )
+
 
 @pytest.fixture
 def note(user):
