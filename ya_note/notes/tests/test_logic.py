@@ -1,8 +1,11 @@
 from http import HTTPStatus
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
+
 from pytils.translit import slugify
+
 from notes.models import Note
 from notes.forms import WARNING
 
@@ -45,7 +48,6 @@ class TestNoteCreation(TestCase):
         self.assertEqual(Note.objects.count(), 0)
 
     def test_slug_unique(self):
-        # Создание первой заметки с тем же slug
         self.auth_client.post(self.ADD_NOTE_URL, data=self.form_data)
         response = self.auth_client.post(
             self.ADD_NOTE_URL,
@@ -99,14 +101,12 @@ class TestNoteEditDelete(TestCase):
         }
 
     def test_author_can_edit_note(self):
-        # Автор может отредактировать заметку
         self.author_client.post(self.edit_note_url, self.form_data)
         self.note.refresh_from_db()
         self.assertEqual(self.note.title, self.NEW_NOTE_TITLE)
         self.assertEqual(self.note.text, self.NEW_NOTE_TEXT)
 
     def test_other_user_cant_edit_note(self):
-        # Другой пользователь не может редактировать заметку
         response = self.reader_client.post(
             self.edit_note_url,
             self.form_data
@@ -118,13 +118,11 @@ class TestNoteEditDelete(TestCase):
         self.assertEqual(self.note.text, note_from_db.text)
 
     def test_author_can_delete_note(self):
-        # Автор может удалить заметку
         response = self.author_client.post(self.delete_note_url)
         self.assertRedirects(response, reverse('notes:success'))
         self.assertEqual(Note.objects.count(), 0)
 
     def test_other_user_cant_delete_note(self):
-        # Другой пользователь не может удалить заметку
         response = self.reader_client.post(self.delete_note_url)
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         self.assertEqual(Note.objects.count(), 1)
