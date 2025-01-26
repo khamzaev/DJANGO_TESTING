@@ -16,9 +16,7 @@ from pytest_django.asserts import assertRedirects
     )
 )
 def test_pages_availability(client, name, args, news):
-    """
-    Проверка доступности страниц для анонимного пользователя.
-    """
+    """Проверка доступности страниц для анонимного пользователя."""
     if name == 'news:detail':
         args = (news.id,)
     url = reverse(name, args=args)
@@ -38,10 +36,9 @@ def test_pages_availability(client, name, args, news):
     )
 )
 def test_availability_for_comment_edit_and_delete(
-        client, user, expected_status, author, reader, comment):
-    """
-    Проверка доступности страниц редактирования и удаления комментариев.
-    """
+        client, user, expected_status, author, reader, comment
+):
+    """Проверка доступности страниц редактирования и удаления комментариев."""
     user_instance = author if user == 'author' else reader
     client.force_login(user_instance)
 
