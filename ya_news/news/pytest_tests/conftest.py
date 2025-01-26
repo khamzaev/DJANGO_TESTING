@@ -16,10 +16,10 @@ User = get_user_model()
 
 @pytest.fixture
 def unique(request):
-    """Фикстура для создания уникальных значений"""
     def _unique(prefix):
         return f"{prefix}_{uuid.uuid4().hex}"
     return _unique
+
 
 @pytest.fixture
 def create_user(unique):
@@ -75,7 +75,6 @@ def create_comments(create_news):
 
 @pytest.fixture
 def news(db):
-    """Фикстура для создания объекта новости."""
     return News.objects.create(
         title='Заголовок',
         text='Текст новости'
@@ -91,7 +90,6 @@ def user():
 
 @pytest.fixture
 def auth_client():
-    """Фикстура для авторизованного клиента."""
     user = User.objects.create(username='TestUser')
     client = Client()
     client.force_login(user)

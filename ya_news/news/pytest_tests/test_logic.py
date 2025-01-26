@@ -57,7 +57,10 @@ def test_author_can_delete_comment(author_client, comment):
     response = author_client.delete(url)
 
     assert response.status_code == HTTPStatus.FOUND
-    expected_redirect_url = reverse('news:detail', args=(comment.news.id,)) + '#comments'
+    expected_redirect_url = reverse(
+        'news:detail',
+        args=(comment.news.id,)
+    ) + '#comments'
     assert response.url == expected_redirect_url
     assert not Comment.objects.filter(id=comment.id).exists()
 
@@ -87,7 +90,6 @@ def test_author_can_edit_comment(author_client, comment):
     assert updated_comment.news == comment.news
     assert updated_comment.author == comment.author
     assert updated_comment.created == comment.created
-
 
 
 @pytest.mark.django_db
