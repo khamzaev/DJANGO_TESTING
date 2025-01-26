@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.conf import settings
 
 from notes.models import Note
-from common import user, note
+from .common import user, note
 
 
 class TestHomePage(TestCase):
