@@ -14,9 +14,6 @@ User = get_user_model()
 
 @pytest.fixture
 def create_user():
-    """
-    Создаёт пользователя для тестирования.
-    """
     return User.objects.create_user(
         username='Комментатор',
         password='password'
@@ -25,9 +22,6 @@ def create_user():
 
 @pytest.fixture
 def client_with_author(create_user):
-    """
-    Создаёт клиент, авторизованный как 'Комментатор'.
-    """
     client = Client()
     client.force_login(create_user)
     return client
@@ -35,9 +29,6 @@ def client_with_author(create_user):
 
 @pytest.fixture
 def home_url():
-    """
-    Фикстура, которая возвращает URL домашней страницы.
-    """
     return reverse('news:home')
 
 
@@ -57,9 +48,6 @@ def create_news():
 
 @pytest.fixture
 def create_comments(create_news):
-    """
-    Создаёт комментарии для одной конкретной новости.
-    """
     author = User.objects.create_user(
         username='Комментатор',
         password='password'

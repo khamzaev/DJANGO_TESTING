@@ -21,7 +21,10 @@ from pytest_django.asserts import assertRedirects
 )
 
 
-def test_pages_availability(client, name, args, user, expected_status, author, reader, comment):
+def test_pages_availability(
+        client, name, args, user, expected_status,
+        author, reader, comment
+):
     if user == 'author':
         client.force_login(author)
     elif user == 'reader':

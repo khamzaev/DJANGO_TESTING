@@ -42,7 +42,9 @@ def test_anonymous_client_has_no_form(client, create_news, create_comments):
 
 
 @pytest.mark.django_db
-def test_authorized_client_has_form(client_with_author, create_news, create_comments):
+def test_authorized_client_has_form(
+        client_with_author, create_news, create_comments
+):
     news = create_comments
     detail_url = reverse('news:detail', args=(news.id,))
     response = client_with_author.get(detail_url)

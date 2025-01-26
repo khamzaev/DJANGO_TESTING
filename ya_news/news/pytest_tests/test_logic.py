@@ -3,7 +3,7 @@ from http import HTTPStatus
 from django.urls import reverse
 
 from news.forms import BAD_WORDS, WARNING
-from ya_news.news.models import Comment
+from news.models import Comment
 
 
 FORM_DATA = {'text': 'Текст комментария'}
@@ -14,7 +14,9 @@ def test_anonymous_user_cant_create_comment(client, news):
     url = reverse('news:detail', args=(news.id,))
     client.post(url, data=FORM_DATA)
 
-    assert not Comment.objects.filter(news=news, text=FORM_DATA['text']).exists()
+    assert not Comment.objects.filter(
+        news=news,
+        text=FORM_DATA['text']).exists()
 
 
 @pytest.mark.django_db
@@ -26,7 +28,9 @@ def test_user_can_create_comment(auth_client, news):
     assert response.status_code == HTTPStatus.FOUND
     assert response.url == f'{url}#comments'
 
-    comment = Comment.objects.filter(news=news, text=FORM_DATA['text']).first()
+    comment = Comment.objects.filter(
+        news=news,
+        text=FORM_DATA['text']).first()
     assert comment is not None
     assert comment.news == news
     assert comment.author == user
@@ -42,13 +46,16 @@ def test_user_cant_use_bad_words(auth_client, news):
     assert 'text' in response.context['form'].errors
     assert response.context['form'].errors['text'] == [WARNING]
 
-    assert not Comment.objects.filter(news=news, text=bad_words_data['text']).exists()
+    assert not Comment.objects.filter(
+        news=news,
+        text=bad_words_data['text']).exists()
 
 
 @pytest.mark.django_db
 def test_author_can_delete_comment(author_client, comment):
     url = reverse('news:delete', args=(comment.id,))
     response = author_client.delete(url)
+
     assert response.status_code == HTTPStatus.FOUND
     expected_redirect_url = reverse('news:detail', args=(comment.news.id,))
     assert response.url == expected_redirect_url
@@ -61,7 +68,6 @@ def test_user_cant_delete_comment_of_another_user(reader_client, comment):
     response = reader_client.delete(url)
 
     assert response.status_code == HTTPStatus.NOT_FOUND
-
     assert Comment.objects.filter(id=comment.id).exists()
 
 

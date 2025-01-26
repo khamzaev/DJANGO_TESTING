@@ -13,7 +13,6 @@ class TestRoutes(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        # Создаём пользователя, который будет владельцем заметки.
         cls.author = User.objects.create_user(
             username='author',
             password='password'
@@ -30,7 +29,6 @@ class TestRoutes(TestCase):
         )
 
     def test_pages_availability(self):
-        # Проверка доступности основных страниц.
         urls = (
             ('notes:home', None),
             ('notes:add', None),
