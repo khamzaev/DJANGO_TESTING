@@ -9,15 +9,14 @@ from pytils.translit import slugify
 from notes.models import Note
 from notes.forms import WARNING
 
-
 User = get_user_model()
 
 
-class TestNoteCreation(TestCase):
+class TestNoteFunctionality(TestCase):
     ADD_NOTE_URL = reverse('notes:add')
 
     def setUp(self):
-        """Настройка данных для тестов"""
+        """Настройка данных для тестов."""
         self.form_data = {'title': 'Form title',
                           'text': 'Form text',
                           'slug': 'form-slug'}
@@ -25,6 +24,31 @@ class TestNoteCreation(TestCase):
         self.user = User.objects.create(username='Test User')
         self.auth_client = Client()
         self.auth_client.force_login(self.user)
+
+        self.author = User.objects.create(username='Test')
+        self.author_client = Client()
+        self.author_client.force_login(self.author)
+
+        self.reader = User.objects.create(username='Simple')
+        self.reader_client = Client()
+        self.reader_client.force_login(self.reader)
+
+        self.note = Note.objects.create(
+            title='title',
+            text='note text',
+            slug='noteslug',
+            author=self.author,
+        )
+        self.edit_note_url = reverse(
+            'notes:edit',
+            args=[self.note.slug])
+        self.delete_note_url = reverse(
+            'notes:delete',
+            args=[self.note.slug])
+        self.edit_form_data = {
+            'title': 'new note title',
+            'text': 'new note text'
+        }
 
     def test_user_can_create_note(self):
         """Проверяет создание заметки авторизованным пользователем."""
@@ -46,7 +70,7 @@ class TestNoteCreation(TestCase):
         login_url = reverse('users:login')
         expected_url = f'{login_url}?next={self.ADD_NOTE_URL}'
         self.assertRedirects(response, expected_url)
-        self.assertEqual(Note.objects.count(), 0)
+        self.assertEqual(Note.objects.count(), 1)
 
     def test_slug_unique(self):
         """Проверяет уникальность слага при создании заметки."""
@@ -76,44 +100,11 @@ class TestNoteCreation(TestCase):
         self.assertIsNotNone(new_note)
         self.assertEqual(new_note.slug, expected_slug)
 
-
-class TestNoteEditDelete(TestCase):
-    NOTE_TITLE = 'title'
-    NEW_NOTE_TITLE = 'new note title'
-    NOTE_TEXT = 'note text'
-    NEW_NOTE_TEXT = 'new note text'
-
-    def setUp(self):
-        """
-        Настройка данных для тестов редактирования
-        и удаления заметки
-        """
-        self.author = User.objects.create(username='Test')
-        self.author_client = Client()
-        self.author_client.force_login(self.author)
-
-        self.reader = User.objects.create(username='Simple')
-        self.reader_client = Client()
-        self.reader_client.force_login(self.reader)
-
-        self.note = Note.objects.create(
-            title=self.NOTE_TITLE,
-            text=self.NOTE_TEXT,
-            slug='noteslug',
-            author=self.author,
-        )
-        self.edit_note_url = reverse('notes:edit', args=[self.note.slug])
-        self.delete_note_url = reverse('notes:delete', args=[self.note.slug])
-        self.form_data = {
-            'title': self.NEW_NOTE_TITLE,
-            'text': self.NEW_NOTE_TEXT
-        }
-
     def test_author_can_edit_note(self):
         """Проверяет, что автор может редактировать свою заметку."""
-        self.author_client.post(self.edit_note_url, self.form_data)
+        self.author_client.post(self.edit_note_url, self.edit_form_data)
         self.note.refresh_from_db()
-        self.assertEqual(self.note.title, self.NEW_NOTE_TITLE)
+        self.assertEqual(self.note.title, 'new note title')
 
     def test_other_user_cant_edit_note(self):
         """
@@ -122,7 +113,7 @@ class TestNoteEditDelete(TestCase):
         """
         response = self.reader_client.post(
             self.edit_note_url,
-            self.form_data
+            self.edit_form_data
         )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
