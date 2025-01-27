@@ -130,7 +130,10 @@ class TestNotesViews(TestCase):
         self.assertEqual(Note.objects.count(), 0)
 
     def test_note_detail(self):
-        """Проверяем отображение страницы заметки для авторизованного пользователя."""
+        """
+        Проверяем отображение страницы заметки для
+        авторизованного пользователя.
+        """
         self.client.login(username='testuser', password='password')
         response = self.client.get(self.DETAIL_NOTE_URL)
         self.assertEqual(response.status_code, 200)
