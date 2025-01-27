@@ -44,27 +44,39 @@ class TestNotesViews(TestCase):
         self.assertEqual(len(response.context['object_list']), db_notes_count)
 
     def test_create_note_anonymous_user(self):
-        """Проверяем, что анонимный пользователь перенаправляется на страницу входа."""
+        """
+        Проверяем, что анонимный пользователь
+        перенаправляется на страницу входа.
+        """
         response = self.client.get(self.CREATE_NOTE_URL)
         expected_url = f"{settings.LOGIN_URL}?next={self.CREATE_NOTE_URL}"
         self.assertRedirects(response, expected_url)
 
     def test_create_note_authenticated_user(self):
-        """Проверяем доступность страницы создания заметки для авторизованного пользователя."""
+        """
+        Проверяем доступность страницы создания заметки
+        для авторизованного пользователя.
+        """
         self.client.login(username='testuser', password='password')
         response = self.client.get(self.CREATE_NOTE_URL)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'notes/form.html')
 
     def test_update_note_authenticated_user(self):
-        """Проверяем доступность страницы для авторизованного пользователя."""
+        """
+        Проверяем доступность страницы для
+        авторизованного пользователя.
+        """
         self.client.login(username='testuser', password='password')
         response = self.client.get(self.UPDATE_NOTE_URL)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'notes/form.html')
 
     def test_update_note_anonymous_user(self):
-        """Проверяем, что анонимный пользователь перенаправляется на страницу входа."""
+        """
+        Проверяем, что анонимный пользователь перенаправляется
+        на страницу входа.
+        """
         response = self.client.get(self.UPDATE_NOTE_URL)
         login_url = reverse('users:login')
         self.assertRedirects(
@@ -73,7 +85,10 @@ class TestNotesViews(TestCase):
         )
 
     def test_update_note_valid_form(self):
-        """Проверяем, что авторизованный пользователь может обновить заметку."""
+        """
+        Проверяем, что авторизованный
+        пользователь может обновить заметку.
+        """
         self.client.login(username='testuser', password='password')
         data = {
             'title': 'Обновлённая заметка',
@@ -87,14 +102,20 @@ class TestNotesViews(TestCase):
         self.assertEqual(updated_note.text, 'Обновлённый текст')
 
     def test_delete_note_authenticated_user(self):
-        """Проверяем доступность страницы для авторизованного пользователя."""
+        """
+        Проверяем доступность страницы для
+        авторизованного пользователя.
+        """
         self.client.login(username='testuser', password='password')
         response = self.client.get(self.DELETE_NOTE_URL)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'notes/delete.html')
 
     def test_delete_note_anonymous_user(self):
-        """Проверяем, что анонимный пользователь перенаправляется на страницу входа."""
+        """
+        Проверяем, что анонимный пользователь
+        перенаправляется на страницу входа.
+        """
         response = self.client.get(self.DELETE_NOTE_URL)
         self.assertRedirects(
             response,
