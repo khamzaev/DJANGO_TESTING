@@ -8,6 +8,7 @@ from news.models import News
 
 @pytest.mark.django_db
 def test_news_count(client, create_news, home_url):
+    """Проверяет количество новостей на главной странице."""
     response = client.get(home_url)
     object_list = response.context['object_list']
     news_count = object_list.count()
@@ -16,6 +17,7 @@ def test_news_count(client, create_news, home_url):
 
 @pytest.mark.django_db
 def test_news_order(client, create_news, home_url):
+    """Проверяет порядок новостей на главной странице по дате."""
     response = client.get(home_url)
     object_list = response.context['object_list']
     all_dates = [news.date for news in object_list]
@@ -25,7 +27,8 @@ def test_news_order(client, create_news, home_url):
 
 @pytest.mark.django_db
 def test_comments_order(client, create_news):
-    news = News.objects.first()  # Получаем первую новость
+    """Проверяет порядок комментариев к новости по времени создания."""
+    news = News.objects.first()
     detail_url = reverse('news:detail', args=(news.id,))
     client.get(detail_url)
     all_comments = news.comment_set.all()
@@ -36,6 +39,7 @@ def test_comments_order(client, create_news):
 
 @pytest.mark.django_db
 def test_anonymous_client_has_no_form(client, create_news):
+    """Проверяет отсутствие формы для анонимного пользователя."""
     news = News.objects.first()
     detail_url = reverse('news:detail', args=(news.id,))
     response = client.get(detail_url)
@@ -44,6 +48,7 @@ def test_anonymous_client_has_no_form(client, create_news):
 
 @pytest.mark.django_db
 def test_authorized_client_has_form(client_with_author, create_news):
+    """Проверяет наличие формы для авторизованного пользователя."""
     news = News.objects.first()
     detail_url = reverse('news:detail', args=(news.id,))
     response = client_with_author.get(detail_url)

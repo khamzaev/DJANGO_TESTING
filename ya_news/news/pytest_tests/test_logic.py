@@ -11,6 +11,7 @@ FORM_DATA = {'text': 'Текст комментария'}
 
 @pytest.mark.django_db
 def test_anonymous_user_cant_create_comment(client, news):
+    """Проверяет, что анонимный пользователь не может создать комментарий."""
     url = reverse('news:detail', args=(news.id,))
     client.post(url, data=FORM_DATA)
 
@@ -21,6 +22,10 @@ def test_anonymous_user_cant_create_comment(client, news):
 
 @pytest.mark.django_db
 def test_user_can_create_comment(auth_client, news):
+    """
+    Проверяет, что авторизованный пользователь
+    может создать комментарий.
+    """
     client, user = auth_client
     url = reverse('news:detail', args=(news.id,))
     response = client.post(url, data=FORM_DATA)
@@ -38,6 +43,7 @@ def test_user_can_create_comment(auth_client, news):
 
 @pytest.mark.django_db
 def test_user_cant_use_bad_words(auth_client, news):
+    """Проверяет, что нельзя использовать запрещённые слова в комментарии."""
     client, user = auth_client
     url = reverse('news:detail', args=(news.id,))
     bad_words_data = {'text': f'Какой-то текст, {BAD_WORDS[0]}, еще текст'}
@@ -53,6 +59,7 @@ def test_user_cant_use_bad_words(auth_client, news):
 
 @pytest.mark.django_db
 def test_author_can_delete_comment(author_client, comment):
+    """Проверяет, что автор комментария может его удалить."""
     url = reverse('news:delete', args=(comment.id,))
     response = author_client.delete(url)
 
@@ -67,6 +74,7 @@ def test_author_can_delete_comment(author_client, comment):
 
 @pytest.mark.django_db
 def test_user_cant_delete_comment_of_another_user(reader_client, comment):
+    """Проверяет, что пользователь не может удалить чужой комментарий."""
     url = reverse('news:delete', args=(comment.id,))
     response = reader_client.delete(url)
 
@@ -76,6 +84,7 @@ def test_user_cant_delete_comment_of_another_user(reader_client, comment):
 
 @pytest.mark.django_db
 def test_author_can_edit_comment(author_client, comment):
+    """Проверяет, что автор комментария может его отредактировать."""
     url = reverse('news:edit', kwargs={'pk': comment.id})
     new_text = {'text': 'Обновлённый комментарий'}
     response = author_client.post(url, data=new_text)
@@ -94,6 +103,10 @@ def test_author_can_edit_comment(author_client, comment):
 
 @pytest.mark.django_db
 def test_user_cant_edit_comment_of_another_user(reader_client, comment):
+    """
+    Проверяет, что пользователь не может
+    редактировать чужой комментарий.
+    """
     url = reverse('news:edit', args=(comment.id,))
     new_text = {'text': 'Обновлённый комментарий'}
     response = reader_client.post(url, data=new_text)

@@ -38,7 +38,10 @@ def test_pages_availability(client, name, args, news):
 def test_availability_for_comment_edit_and_delete(
         client, user, expected_status, author, reader, comment
 ):
-    """Проверка доступности страниц редактирования и удаления комментариев."""
+    """
+    Проверяет доступность страниц редактирования и удаления
+    комментариев для авторизованных пользователей.
+    """
     user_instance = author if user == 'author' else reader
     client.force_login(user_instance)
 
@@ -55,8 +58,8 @@ def test_availability_for_comment_edit_and_delete(
 )
 def test_redirect_for_anonymous_client(client, name, comment):
     """
-    Проверка редиректа для анонимного пользователя.
-    На страницы редактирования и удаления комментариев.
+    Проверяет редирект анонимного пользователя на страницы
+    редактирования и удаления комментариев.
     """
     login_url = reverse('users:login')
     url = reverse(name, args=(comment.id,))

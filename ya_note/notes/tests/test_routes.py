@@ -29,6 +29,10 @@ class TestRoutes(TestCase):
         )
 
     def test_pages_availability_and_redirects(self):
+        """
+        Проверяет доступность страниц и
+        редиректы для различных пользователей.
+        """
         for name, args in (
                 ('notes:home', None),
                 ('notes:add', None),
@@ -57,7 +61,10 @@ class TestRoutes(TestCase):
                     redirect_url = f'{reverse("users:login")}?next={url}'
                     self.assertRedirects(response, redirect_url)
                 elif name in ('notes:edit', 'notes:delete'):
-                    self.assertRedirects(response, reverse('users:login') + f'?next={url}')
+                    self.assertRedirects(
+                        response,
+                        reverse('users:login') + f'?next={url}'
+                    )
 
         self.client.force_login(self.reader)
         for name in ('notes:edit', 'notes:delete'):
@@ -67,6 +74,10 @@ class TestRoutes(TestCase):
                 self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     def test_redirect_for_anonymous_client(self):
+        """
+        Проверяет редирект для анонимного пользователя.
+        На страницы редактирования и удаления.
+        """
         login_url = reverse('users:login')
 
         for name in ('notes:edit', 'notes:delete'):
