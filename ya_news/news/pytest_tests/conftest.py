@@ -1,12 +1,11 @@
-import uuid
+from datetime import datetime, timedelta
 
 import pytest
-from datetime import datetime, timedelta
 from django.conf import settings
-from django.urls import reverse
-from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.test import Client
+from django.urls import reverse
+from django.utils import timezone
 
 from news.models import News, Comment
 
@@ -14,36 +13,81 @@ from news.models import News, Comment
 User = get_user_model()
 
 
+# Пользователи
 @pytest.fixture
-def unique(request):
-    def _unique(prefix):
-        return f"{prefix}_{uuid.uuid4().hex}"
-    return _unique
-
-
-@pytest.fixture
-def create_user(unique):
-    username = unique('username')
-    return User.objects.create_user(
-        username=username,
-        password='password'
-    )
+def user():
+    return User.objects.create(username='Мимо Крокодил')
 
 
 @pytest.fixture
-def client_with_author(create_user):
+def author():
+    return User.objects.create(username='Автор комментария')
+
+
+@pytest.fixture
+def reader():
+    return User.objects.create(username='Читатель')
+
+
+# Клиенты
+@pytest.fixture
+def auth_client(user):
     client = Client()
-    client.force_login(create_user)
+    client.force_login(user)
     return client
 
 
+@pytest.fixture
+def author_client(author):
+    client = Client()
+    client.force_login(author)
+    return client
+
+
+@pytest.fixture
+def reader_client(reader):
+    client = Client()
+    client.force_login(reader)
+    return client
+
+
+# Страницы
 @pytest.fixture
 def home_url():
     return reverse('news:home')
 
 
+# Новости
+@pytest.fixture
+def news(db):
+    """Создание единственной новости."""
+    return News.objects.create(
+        title='Заголовок',
+        text='Текст новости'
+    )
+
+
+@pytest.fixture
+def detail_url(news):
+    """Возвращает URL для страницы детали конкретной новости."""
+    return reverse('news:detail', args=(news.id,))
+
+
+@pytest.fixture
+def delete_url(comment):
+    """Возвращает URL для удаления комментария."""
+    return reverse('news:delete', args=(comment.id,))
+
+
+@pytest.fixture
+def edit_url(comment):
+    """Возвращает URL для редактирования комментария."""
+    return reverse('news:edit', kwargs={'pk': comment.id})
+
+
 @pytest.fixture
 def create_news():
+    """Создание нескольких новостей."""
     today = datetime.today()
     all_news = [
         News(
@@ -56,60 +100,7 @@ def create_news():
     News.objects.bulk_create(all_news)
 
 
-@pytest.fixture
-def create_comments(create_news):
-    author = User.objects.create_user(
-        username='Комментатор',
-        password='password'
-    )
-    news = News.objects.first()
-    now = timezone.now()
-
-    for index in range(10):
-        comment = Comment.objects.create(
-            news=news, author=author, text=f'Tекст {index}',
-        )
-        comment.created = now + timedelta(days=index)
-        comment.save()
-
-
-@pytest.fixture
-def news(db):
-    return News.objects.create(
-        title='Заголовок',
-        text='Текст новости'
-    )
-
-
-@pytest.fixture
-def user():
-    return User.objects.create(
-        username='Мимо Крокодил'
-    )
-
-
-@pytest.fixture
-def auth_client():
-    user = User.objects.create(username='TestUser')
-    client = Client()
-    client.force_login(user)
-    return client, user
-
-
-@pytest.fixture
-def author():
-    return User.objects.create(
-        username='Автор комментария'
-    )
-
-
-@pytest.fixture
-def reader():
-    return User.objects.create(
-        username='Читатель'
-    )
-
-
+# Комментарии
 @pytest.fixture
 def comment(news, author):
     return Comment.objects.create(
@@ -120,13 +111,14 @@ def comment(news, author):
 
 
 @pytest.fixture
-def author_client(author):
-    client = Client()
-    client.force_login(author)
-    return client
-
-
-@pytest.fixture
-def reader_client(reader, client):
-    client.force_login(reader)
-    return client
+def create_comments(news, author):
+    """Создание нескольких комментариев для новости."""
+    now = timezone.now()
+    for index in range(10):
+        comment = Comment.objects.create(
+            news=news,
+            author=author,
+            text=f'Текст {index}',
+        )
+        comment.created = now + timedelta(days=index)
+        comment.save()
