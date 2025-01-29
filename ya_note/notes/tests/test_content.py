@@ -11,7 +11,6 @@ class TestNotesContent(TestBaseClass):
     def setUp(self):
         super().setUp()
 
-
     def test_home_page(self):
         """
         Проверяем доступность главной страницы
@@ -21,16 +20,17 @@ class TestNotesContent(TestBaseClass):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'notes/home.html')
 
-
     def test_notes_list(self):
-        """Проверяем, сколько заметок отображается на главной странице."""
+        """
+        Проверяем, сколько заметок отображается
+        на главной странице.
+        """
         response = self.auth_author.get(NOTES_LIST_URL)
         notes_count = Note.objects.count()
         self.assertEqual(
             response.context['object_list'].count(),
             notes_count
         )
-
 
     def test_create_note_authenticated_user(self):
         """
@@ -49,7 +49,6 @@ class TestNotesContent(TestBaseClass):
         self.assertContains(response, 'name="title"')
         self.assertContains(response, 'name="text"')
         self.assertContains(response, 'name="slug"')
-
 
     def test_note_detail(self):
         """

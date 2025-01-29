@@ -11,7 +11,6 @@ from .common import (
 
 class NoteAccessTest(TestBaseClass):
     """Тесты для доступа к страницам заметок и страницам авторизации."""
-
     def test_access_to_pages(self):
         """
         Проверка доступа к страницам для анонимных и
@@ -42,6 +41,7 @@ class NoteAccessTest(TestBaseClass):
                     self.assertRedirects(response, f'{LOGIN_URL}?next={url}')
                 else:
                     self.assertEqual(response.status_code, status)
+
 
     def test_redirect_for_anonymous_client(self):
         """Проверяет редирект анонимных пользователей на страницу входа."""

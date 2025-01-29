@@ -30,7 +30,6 @@ class TestNoteFunctionality(TestBaseClass):
         new_note = Note.objects.filter(slug=FORM_DATA['slug']).first()
         self.assertIsNotNone(new_note)
 
-
     def test_not_auth_user_cant_create_note(self):
         """
         Проверяет, что неавторизованный пользователь
@@ -42,7 +41,6 @@ class TestNoteFunctionality(TestBaseClass):
         self.assertRedirects(response, expected_url)
         self.assertEqual(Note.objects.count(), note_count)
 
-
     def test_slug_unique(self):
         """Проверяет уникальность слага при создании заметки."""
         self.auth_author.post(NOTES_ADD_URL, data=FORM_DATA)
@@ -53,7 +51,6 @@ class TestNoteFunctionality(TestBaseClass):
         form = response.context['form']
         warning = FORM_DATA['slug'] + WARNING
         self.assertIn(warning, form.errors['slug'])
-
 
     def test_fill_slug(self):
         """
@@ -75,7 +72,6 @@ class TestNoteFunctionality(TestBaseClass):
         self.assertIsNotNone(new_note)
         self.assertEqual(new_note.slug, expected_slug)
 
-
     def test_author_can_edit_note(self):
         """Проверяет, что автор может редактировать свою заметку."""
         edit_form_data = {
@@ -85,7 +81,6 @@ class TestNoteFunctionality(TestBaseClass):
         self.auth_author.post(EDIT_SLUG_URL, edit_form_data)
         self.note.refresh_from_db()
         self.assertEqual(self.note.title, 'new note title')
-
 
     def test_other_user_cant_edit_note(self):
         """
@@ -102,7 +97,6 @@ class TestNoteFunctionality(TestBaseClass):
         )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
-
     def test_author_can_delete_note(self):
         """Проверяет, что автор может удалить свою заметку."""
         notes_before = Note.objects.count()
@@ -115,7 +109,6 @@ class TestNoteFunctionality(TestBaseClass):
         self.assertEqual(notes_after, notes_before - 1)
 
         self.assertFalse(Note.objects.filter(slug=self.note.slug).exists())
-
 
     def test_other_user_cant_delete_note(self):
         """
