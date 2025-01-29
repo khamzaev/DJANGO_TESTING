@@ -26,7 +26,8 @@ def test_news_order(client, create_news, home_url):
 @pytest.mark.django_db
 def test_comments_order(client, create_comments, detail_url, news):
     """
-    Проверяет порядок комментариев к новости по времени создания.
+    Проверяет порядок комментариев к
+    новости по времени создания.
     """
     client.get(detail_url)
 

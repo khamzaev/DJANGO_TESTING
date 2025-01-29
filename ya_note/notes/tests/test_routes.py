@@ -42,7 +42,6 @@ class NoteAccessTest(TestBaseClass):
                 else:
                     self.assertEqual(response.status_code, status)
 
-
     def test_redirect_for_anonymous_client(self):
         """Проверяет редирект анонимных пользователей на страницу входа."""
         parametrized_options = (
