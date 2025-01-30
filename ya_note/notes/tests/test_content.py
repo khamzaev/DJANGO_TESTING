@@ -1,5 +1,5 @@
 from .common import (
-    TestBaseClass,NOTES_ADD_URL,
+    TestBaseClass, NOTES_ADD_URL,
     NOTES_LIST_URL, EDIT_SLUG_URL
 )
 from notes.forms import NoteForm

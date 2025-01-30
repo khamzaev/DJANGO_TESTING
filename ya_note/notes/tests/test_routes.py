@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from .common import (
     NOTES_HOME_URL, NOTES_LIST_URL,
-    LOGIN_URL, NOTES_ADD_URL,
+    NOTES_ADD_URL,
     NOTES_SUCCESS_URL, DETAIL_SLUG_URL,
     EDIT_SLUG_URL, DELETE_SLUG_URL,
     TestBaseClass, REDIRECT_URL
