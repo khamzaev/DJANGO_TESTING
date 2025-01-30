@@ -1,4 +1,5 @@
 import pytest
+
 from http import HTTPStatus
 
 from news.forms import BAD_WORDS, WARNING
@@ -27,14 +28,12 @@ def test_user_can_create_comment(auth_client, news, user, detail_url):
     Проверяет, что авторизованный пользователь
     может создать комментарий.
     """
-    url = detail_url
-
     comments_before = set(Comment.objects.values_list('id', flat=True))
 
-    response = auth_client.post(url, data=FORM_DATA)
+    response = auth_client.post(detail_url, data=FORM_DATA)
 
     assert response.status_code == HTTPStatus.FOUND
-    assert response.url == f'{url}#comments'
+    assert response.url == f'{detail_url}#comments'
 
     comments_after = set(Comment.objects.values_list('id', flat=True))
 
@@ -55,17 +54,14 @@ def test_user_cant_use_bad_words(auth_client, news, detail_url):
     Проверяет, что нельзя использовать
     запрещённые слова в комментарии.
     """
-    url = detail_url
     bad_words_data = {'text': f'Какой-то текст, {BAD_WORDS[0]}, еще текст'}
-    response = auth_client.post(url, data=bad_words_data)
+    comments_count_before = Comment.objects.filter(news=news).count()
+    response = auth_client.post(detail_url, data=bad_words_data)
 
     assert 'text' in response.context['form'].errors
     assert response.context['form'].errors['text'] == [WARNING]
 
-    assert Comment.objects.filter(
-        news=news,
-        text=bad_words_data['text']
-    ).count() == 0
+    assert Comment.objects.filter(news=news).count() == comments_count_before
 
     assert not Comment.objects.filter(
         news=news,
@@ -77,9 +73,8 @@ def test_author_can_delete_comment(
         author_client, comment, delete_url, detail_url
 ):
     """Проверяет, что автор комментария может его удалить."""
-    url = delete_url
     comments_before = Comment.objects.count()
-    response = author_client.delete(url)
+    response = author_client.delete(delete_url)
 
     assert response.status_code == HTTPStatus.FOUND
     expected_redirect_url = detail_url + '#comments'
@@ -98,17 +93,12 @@ def test_user_cant_delete_comment_of_another_user(
     Проверяет, что пользователь не может
     удалить чужой комментарий.
     """
-    url = delete_url
     comment_before = Comment.objects.get(id=comment.id)
 
-    response = reader_client.delete(url)
+    response = reader_client.delete(delete_url)
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert Comment.objects.filter(id=comment.id).exists()
-
-    comments_count_after = Comment.objects.count()
-    comments_count_before = Comment.objects.count()
-    assert comments_count_after == comments_count_before
 
     comment_after = Comment.objects.get(id=comment.id)
     assert comment_after.id == comment_before.id
@@ -124,12 +114,11 @@ def test_author_can_edit_comment(author_client, comment, edit_url):
     Проверяет, что автор комментария может
     его отредактировать.
     """
-    url = edit_url
     new_text = {'text': 'Обновлённый комментарий'}
 
     comments_count_before = Comment.objects.count()
 
-    response = author_client.post(url, data=new_text)
+    response = author_client.post(edit_url, data=new_text)
 
     assert response.status_code == HTTPStatus.FOUND
     assert response.url.endswith('#comments')
@@ -153,12 +142,11 @@ def test_user_cant_edit_comment_of_another_user(
     Проверяет, что пользователь не может
     редактировать чужой комментарий.
     """
-    url = edit_url
     new_text = {'text': 'Обновлённый комментарий'}
 
     comments_count_before = Comment.objects.count()
 
-    response = reader_client.post(url, data=new_text)
+    response = reader_client.post(edit_url, data=new_text)
 
     assert response.status_code == HTTPStatus.NOT_FOUND
 

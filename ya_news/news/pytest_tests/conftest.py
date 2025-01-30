@@ -68,6 +68,27 @@ def news(db):
 
 
 @pytest.fixture
+def news_id(news):
+    """Возвращает ID новости."""
+    return (news.id,)
+
+
+@pytest.fixture
+def login():
+    return reverse('users:login')
+
+
+@pytest.fixture
+def login_redirect(login, comment, request):
+    """
+    Генерирует URL для редиректа с параметром next.
+    Использует имя маршрута из параметризации теста.
+    """
+    route_name = request.param
+    return f'{login}?next={reverse(route_name, args=(comment.id,))}'
+
+
+@pytest.fixture
 def detail_url(news):
     """Возвращает URL для страницы детали конкретной новости."""
     return reverse('news:detail', args=(news.id,))

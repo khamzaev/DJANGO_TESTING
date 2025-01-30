@@ -1,4 +1,5 @@
 import pytest
+
 from http import HTTPStatus
 
 from django.urls import reverse
@@ -7,59 +8,63 @@ from pytest_django.asserts import assertRedirects
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'name, args, user, expected_status',
+    'name, args, user, expected_status, http_method',
     (
-        ('news:home', None, 'author', HTTPStatus.OK),
-        ('news:home', None, 'reader', HTTPStatus.OK),
-        ('news:detail', None, 'author', HTTPStatus.OK),
-        ('news:detail', None, 'reader', HTTPStatus.OK),
-        ('users:login', None, 'author', HTTPStatus.OK),
-        ('users:login', None, 'reader', HTTPStatus.OK),
-        ('users:logout', None, 'author', HTTPStatus.OK),
-        ('users:logout', None, 'reader', HTTPStatus.OK),
-        ('users:signup', None, 'author', HTTPStatus.OK),
-        ('users:signup', None, 'reader', HTTPStatus.OK),
+        ('news:home', None, pytest.lazy_fixture('author'),
+         HTTPStatus.OK, 'get'),
+        ('news:home', None, pytest.lazy_fixture('reader'),
+         HTTPStatus.OK, 'get'),
+        ('news:detail', pytest.lazy_fixture('news_id'),
+         pytest.lazy_fixture('author'), HTTPStatus.OK, 'get'),
+        ('news:detail', pytest.lazy_fixture('news_id'),
+         pytest.lazy_fixture('reader'), HTTPStatus.OK, 'get'),
+        ('users:login', None, pytest.lazy_fixture('author'),
+         HTTPStatus.OK, 'get'),
+        ('users:login', None, pytest.lazy_fixture('reader'),
+         HTTPStatus.OK, 'get'),
+        ('users:logout', None, pytest.lazy_fixture('author'),
+         HTTPStatus.OK, 'post'),
+        ('users:logout', None, pytest.lazy_fixture('reader'),
+         HTTPStatus.OK, 'post'),
+        ('users:signup', None, pytest.lazy_fixture('author'),
+         HTTPStatus.OK, 'get'),
+        ('users:signup', None, pytest.lazy_fixture('reader'),
+         HTTPStatus.OK, 'get'),
     )
 )
 def test_pages_availability(
-        client, name, args, user,
-        expected_status, author, reader, news
+        client, name, args, user, expected_status, http_method
 ):
     """Проверка доступности страниц для разных пользователей."""
-    user_instance = author if user == 'author' else reader
-    client.force_login(user_instance)
+    client.force_login(user)
 
-    if name == 'news:detail':
-        args = (news.id,)
+    method = getattr(client, http_method)
 
     url = reverse(name, args=args)
-    if name == 'users:logout':
-        response = client.post(url)
-    else:
-        response = client.get(url)
+    response = method(url)
 
     assert response.status_code == expected_status
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'name, user',
+    'name, user, login_redirect',
     (
-        ('news:edit', 'author'),
-        ('news:edit', 'reader'),
-        ('news:delete', 'author'),
-        ('news:delete', 'reader'),
-    )
+        ('news:edit', pytest.lazy_fixture('author'), 'news:edit'),
+        ('news:edit', pytest.lazy_fixture('reader'), 'news:edit'),
+        ('news:delete', pytest.lazy_fixture('author'), 'news:delete'),
+        ('news:delete', pytest.lazy_fixture('reader'), 'news:delete'),
+    ),
+    indirect=['login_redirect']
 )
-def test_redirect_for_anonymous_client(client, name, user, comment):
+def test_redirect_for_anonymous_client(
+        client, name, user, login_redirect, comment
+):
     """
     Проверяет редирект анонимного пользователя на страницы
     редактирования и удаления комментариев.
     """
     url = reverse(name, args=(comment.id,))
-    login_url = reverse('users:login')
-    redirect_url = f'{login_url}?next={url}'
-
     response = client.get(url)
 
-    assertRedirects(response, redirect_url)
+    assertRedirects(response, login_redirect)

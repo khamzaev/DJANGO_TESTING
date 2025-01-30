@@ -1,62 +1,50 @@
 from .common import (
-    TestBaseClass, NOTES_HOME_URL, DETAIL_SLUG_URL,
-    NOTES_ADD_URL, NOTES_LIST_URL
+    TestBaseClass,NOTES_ADD_URL,
+    NOTES_LIST_URL, EDIT_SLUG_URL
 )
-from notes.models import Note
 from notes.forms import NoteForm
 
 
 class TestNotesContent(TestBaseClass):
     """Тесты для проверки контента страниц заметок."""
-    def setUp(self):
-        super().setUp()
 
-    def test_home_page(self):
+    def test_notes_list_contains_only_user_notes(self):
         """
-        Проверяем доступность главной страницы
-        и используемый шаблон.
-        """
-        response = self.auth_author.get(NOTES_HOME_URL)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'notes/home.html')
-
-    def test_notes_list(self):
-        """
-        Проверяем, сколько заметок отображается
-        на главной странице.
+        Проверяем, что в списке отображаются
+        только заметки текущего пользователя.
         """
         response = self.auth_author.get(NOTES_LIST_URL)
-        notes_count = Note.objects.count()
-        self.assertEqual(
-            response.context['object_list'].count(),
-            notes_count
-        )
+        notes = response.context['object_list']
 
-    def test_create_note_authenticated_user(self):
+        self.assertTrue(all(note.author == self.author for note in notes))
+
+        self.assertIn(self.note, notes)
+
+        response_other = self.auth_other_user.get(NOTES_LIST_URL)
+        self.assertNotIn(self.note, response_other.context['object_list'])
+
+    def test_create_note_page_contains_form(self):
         """
-        Проверяем доступность страницы создания заметки и
-        проверяем содержимое формы для авторизованного пользователя.
+        Проверяем, что на странице
+        создания заметки передаётся форма.
         """
         response = self.auth_author.get(NOTES_ADD_URL)
 
         self.assertEqual(response.status_code, 200)
-
         self.assertTemplateUsed(response, 'notes/form.html')
 
         self.assertIn('form', response.context)
         self.assertIsInstance(response.context['form'], NoteForm)
 
-        self.assertContains(response, 'name="title"')
-        self.assertContains(response, 'name="text"')
-        self.assertContains(response, 'name="slug"')
+    def test_edit_note_page_contains_form(self):
+        """
+        Проверяем, что на странице редактирования
+        заметки передаётся форма.
+        """
+        response = self.auth_author.get(EDIT_SLUG_URL)
 
-    def test_note_detail(self):
-        """
-        Проверяем отображение страницы заметки
-        для авторизованного пользователя.
-        """
-        response = self.auth_author.get(DETAIL_SLUG_URL)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'notes/detail.html')
-        self.assertIn('note', response.context)
-        self.assertEqual(response.context['note'], self.note)
+        self.assertTemplateUsed(response, 'notes/form.html')
+
+        self.assertIn('form', response.context)
+        self.assertIsInstance(response.context['form'], NoteForm)

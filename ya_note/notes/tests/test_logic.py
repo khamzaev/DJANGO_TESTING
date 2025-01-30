@@ -21,14 +21,24 @@ class TestNoteFunctionality(TestBaseClass):
 
     def test_user_can_create_note(self):
         """Проверяет создание заметки авторизованным пользователем."""
+        notes_count_before = Note.objects.count()
+
         response = self.auth_author.post(
             NOTES_ADD_URL,
             data=FORM_DATA
         )
+
+        self.assertEqual(Note.objects.count(), notes_count_before + 1)
+
         self.assertRedirects(response, NOTES_SUCCESS_URL)
 
         new_note = Note.objects.filter(slug=FORM_DATA['slug']).first()
         self.assertIsNotNone(new_note)
+
+        self.assertEqual(new_note.title, FORM_DATA['title'])
+        self.assertEqual(new_note.text, FORM_DATA['text'])
+        self.assertEqual(new_note.slug, FORM_DATA['slug'])
+        self.assertEqual(new_note.author, self.author)
 
     def test_not_auth_user_cant_create_note(self):
         """
@@ -74,28 +84,39 @@ class TestNoteFunctionality(TestBaseClass):
 
     def test_author_can_edit_note(self):
         """Проверяет, что автор может редактировать свою заметку."""
-        edit_form_data = {
-            'title': 'new note title',
-            'text': 'new note text'
-        }
-        self.auth_author.post(EDIT_SLUG_URL, edit_form_data)
-        self.note.refresh_from_db()
-        self.assertEqual(self.note.title, 'new note title')
+        notes_count_before = Note.objects.count()
+
+        self.auth_author.post(EDIT_SLUG_URL, data=FORM_DATA)
+
+        updated_note = Note.objects.get(id=self.note.id)
+
+        self.assertEqual(Note.objects.count(), notes_count_before)
+
+        self.assertEqual(updated_note.title, FORM_DATA['title'])
+        self.assertEqual(updated_note.text, FORM_DATA['text'])
+        self.assertEqual(updated_note.slug, FORM_DATA['slug'])
+        self.assertEqual(updated_note.author, self.note.author)
 
     def test_other_user_cant_edit_note(self):
         """
         Проверяет, что другой пользователь
         не может редактировать чужую заметку.
         """
-        edit_form_data = {
-            'title': 'new note title',
-            'text': 'new note text'
-        }
+        notes_count_before = Note.objects.count()
         response = self.auth_other_user.post(
             EDIT_SLUG_URL,
-            edit_form_data
+            FORM_DATA
         )
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+
+        updated_note = Note.objects.get(id=self.note.id)
+
+        self.assertEqual(Note.objects.count(), notes_count_before)
+
+        self.assertEqual(updated_note.title, self.note.title)
+        self.assertEqual(updated_note.text, self.note.text)
+        self.assertEqual(updated_note.slug, self.note.slug)
+        self.assertEqual(updated_note.author, self.note.author)
 
     def test_author_can_delete_note(self):
         """Проверяет, что автор может удалить свою заметку."""
@@ -122,3 +143,10 @@ class TestNoteFunctionality(TestBaseClass):
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
         self.assertEqual(Note.objects.count(), notes_before)
+
+        updated_note = Note.objects.get(id=self.note.id)
+
+        self.assertEqual(updated_note.title, self.note.title)
+        self.assertEqual(updated_note.text, self.note.text)
+        self.assertEqual(updated_note.slug, self.note.slug)
+        self.assertEqual(updated_note.author, self.note.author)

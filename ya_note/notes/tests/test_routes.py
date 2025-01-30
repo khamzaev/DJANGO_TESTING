@@ -37,10 +37,7 @@ class NoteAccessTest(TestBaseClass):
         for url, user, status in parametrized_options:
             with self.subTest(url=url, user=user, status=status):
                 response = user.get(url)
-                if status == HTTPStatus.FOUND:
-                    self.assertRedirects(response, f'{LOGIN_URL}?next={url}')
-                else:
-                    self.assertEqual(response.status_code, status)
+                self.assertEqual(response.status_code, status)
 
     def test_redirect_for_anonymous_client(self):
         """Проверяет редирект анонимных пользователей на страницу входа."""
