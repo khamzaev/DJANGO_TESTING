@@ -13,13 +13,17 @@ class TestNotesContent(TestBaseClass):
         Проверяем, что в списке отображаются
         только заметки текущего пользователя.
         """
+        # Тест для текущего пользователя
         response = self.auth_author.get(NOTES_LIST_URL)
         notes = response.context['object_list']
-
         self.assertTrue(all(note.author == self.author for note in notes))
-
         self.assertIn(self.note, notes)
 
+    def test_notes_list_does_not_contain_other_user_notes(self):
+        """
+        Проверяем, что в списке не отображаются
+        заметки другого пользователя.
+        """
         response_other = self.auth_other_user.get(NOTES_LIST_URL)
         self.assertNotIn(self.note, response_other.context['object_list'])
 

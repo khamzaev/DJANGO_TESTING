@@ -1,6 +1,6 @@
-import pytest
-
 from http import HTTPStatus
+
+import pytest
 
 from news.forms import BAD_WORDS, WARNING
 from news.models import Comment
@@ -93,12 +93,14 @@ def test_user_cant_delete_comment_of_another_user(
     Проверяет, что пользователь не может
     удалить чужой комментарий.
     """
+    comment_count_before = Comment.objects.count()
     comment_before = Comment.objects.get(id=comment.id)
 
     response = reader_client.delete(delete_url)
 
     assert response.status_code == HTTPStatus.NOT_FOUND
-    assert Comment.objects.filter(id=comment.id).exists()
+    assert Comment.objects.count() == comment_count_before
+    comment_after = Comment.objects.get(id=comment.id)
 
     comment_after = Comment.objects.get(id=comment.id)
     assert comment_after.id == comment_before.id

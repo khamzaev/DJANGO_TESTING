@@ -68,12 +68,6 @@ def news(db):
 
 
 @pytest.fixture
-def news_id(news):
-    """Возвращает ID новости."""
-    return (news.id,)
-
-
-@pytest.fixture
 def login():
     return reverse('users:login')
 
