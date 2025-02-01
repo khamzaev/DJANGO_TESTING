@@ -100,7 +100,6 @@ def test_user_cant_delete_comment_of_another_user(
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert Comment.objects.count() == comment_count_before
-    comment_after = Comment.objects.get(id=comment.id)
 
     comment_after = Comment.objects.get(id=comment.id)
     assert comment_after.id == comment_before.id
