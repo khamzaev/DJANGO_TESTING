@@ -7,6 +7,7 @@ from news.models import Comment
 
 FORM_DATA = {'text': 'Текст комментария'}
 
+
 @pytest.mark.django_db
 def test_anonymous_user_cant_create_comment(client, news, news_detail):
     """
@@ -18,6 +19,7 @@ def test_anonymous_user_cant_create_comment(client, news, news_detail):
     client.post(news_detail, data=FORM_DATA)
 
     assert Comment.objects.count() == initial_comment_count
+
 
 @pytest.mark.django_db
 def test_user_can_create_comment(auth_client, news, user, news_detail):
@@ -44,6 +46,7 @@ def test_user_can_create_comment(auth_client, news, user, news_detail):
     assert new_comment.text == FORM_DATA['text']
     assert new_comment.author == user
 
+
 @pytest.mark.django_db
 def test_user_cant_use_bad_words(auth_client, news, news_detail):
     """
@@ -63,6 +66,7 @@ def test_user_cant_use_bad_words(auth_client, news, news_detail):
         news=news,
         text=bad_words_data['text']).exists()
 
+
 @pytest.mark.django_db
 def test_author_can_delete_comment(
         author_client, comment, comment_delete, news_detail
@@ -78,6 +82,7 @@ def test_author_can_delete_comment(
 
     comments_after = Comment.objects.count()
     assert comments_before - 1 == comments_after
+
 
 @pytest.mark.django_db
 def test_user_cant_delete_comment_of_another_user(
@@ -101,6 +106,7 @@ def test_user_cant_delete_comment_of_another_user(
     assert comment_after.author == comment_before.author
     assert comment_after.news == comment_before.news
     assert comment_after.created == comment_before.created
+
 
 @pytest.mark.django_db
 def test_author_can_edit_comment(author_client, comment, comment_edit):
@@ -126,6 +132,7 @@ def test_author_can_edit_comment(author_client, comment, comment_edit):
     assert updated_comment.news == comment.news
     assert updated_comment.author == comment.author
     assert updated_comment.created == comment.created
+
 
 @pytest.mark.django_db
 def test_user_cant_edit_comment_of_another_user(
