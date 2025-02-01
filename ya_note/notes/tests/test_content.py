@@ -13,7 +13,6 @@ class TestNotesContent(TestBaseClass):
         Проверяем, что в списке отображаются
         только заметки текущего пользователя.
         """
-        # Тест для текущего пользователя
         response = self.auth_author.get(NOTES_LIST_URL)
         notes = response.context['object_list']
         self.assertTrue(all(note.author == self.author for note in notes))
