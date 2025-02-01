@@ -48,8 +48,8 @@ def test_pages_availability(
 @pytest.mark.parametrize(
     'name, login_redirect',
     (
-            ('news:edit', 'news:edit'),
-            ('news:delete', 'news:delete'),
+        ('news:edit', 'news:edit'),
+        ('news:delete', 'news:delete'),
     ),
     indirect=['login_redirect']
 )
