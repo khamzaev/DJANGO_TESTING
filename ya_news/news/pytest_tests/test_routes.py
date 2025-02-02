@@ -41,15 +41,18 @@ REDIRECT_URL_DELETE_COMMENT = (pytest
 )
 def test_pages_availability_for_users(url, user, expected_status, method):
     request_method = getattr(user, method)
-    assert request_method(url).status_code == expected_status
+    response = request_method(url)
+    assert response.status_code == expected_status
 
 
 @pytest.mark.parametrize(
-    'url, user, expected_redirect',
+    'url, user, method, expected_redirect',
     (
-        (COMMENT_EDIT_URL, client, REDIRECT_URL_EDIT_COMMENT),
-        (COMMENT_DELETE_URL, client, REDIRECT_URL_DELETE_COMMENT),
+        (COMMENT_EDIT_URL, client, 'get', REDIRECT_URL_EDIT_COMMENT),
+        (COMMENT_DELETE_URL, client, 'post', REDIRECT_URL_DELETE_COMMENT),
     ),
 )
-def test_redirects(url, user, expected_redirect):
-    assertRedirects(user.get(url), expected_redirect)
+def test_redirects(url, user, method, expected_redirect):
+    request_method = getattr(user, method)
+    response = request_method(url)
+    assertRedirects(response, expected_redirect)
