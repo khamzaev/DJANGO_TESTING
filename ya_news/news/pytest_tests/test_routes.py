@@ -22,7 +22,6 @@ REDIRECT_URL_EDIT_COMMENT = pytest.lazy_fixture('redirect_url_edit_comment')
 REDIRECT_URL_DELETE_COMMENT = (pytest
                                .lazy_fixture('redirect_url_delete_comment'))
 
-
 @pytest.mark.parametrize(
     'url, user, expected_status, method',
     (
@@ -44,7 +43,6 @@ def test_pages_availability_for_users(url, user, expected_status, method):
     response = request_method(url)
     assert response.status_code == expected_status
 
-
 @pytest.mark.parametrize(
     'url, user, method, expected_redirect',
     (
@@ -54,5 +52,5 @@ def test_pages_availability_for_users(url, user, expected_status, method):
 )
 def test_redirects(url, user, method, expected_redirect):
     request_method = getattr(user, method)
-    response = request_method(url)
+    response = request_method(url, follow=True)
     assertRedirects(response, expected_redirect)
