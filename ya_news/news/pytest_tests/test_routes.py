@@ -8,7 +8,7 @@ from django.test.client import Client
 
 pytestmark = pytest.mark.django_db
 
-CLIENT = Client()
+client = Client()
 NEWS_DETAIL_URL = pytest.lazy_fixture('news_detail')
 NEWS_HOME_URL = pytest.lazy_fixture('home_url')
 NEWS_LOGIN_URL = pytest.lazy_fixture('login')
@@ -26,13 +26,17 @@ REDIRECT_URL_DELETE_COMMENT = (pytest
 @pytest.mark.parametrize(
     'url, user, expected_status, method',
     (
-        (NEWS_LOGIN_URL, CLIENT, HTTPStatus.OK, 'get'),
-        (NEWS_LOGOUT_URL, CLIENT, HTTPStatus.OK, 'post'),
-        (NEWS_SIGNUP_URL, CLIENT, HTTPStatus.OK, 'get'),
-        (NEWS_DETAIL_URL, CLIENT, HTTPStatus.OK, 'get'),
-        (NEWS_HOME_URL, CLIENT, HTTPStatus.OK, 'get'),
-        (COMMENT_EDIT_URL, NOT_AUTHOR_CLIENT, HTTPStatus.NOT_FOUND, 'get'),
+        (NEWS_LOGIN_URL, client, HTTPStatus.OK, 'get'),
+        (NEWS_LOGOUT_URL, client, HTTPStatus.OK, 'post'),
+        (NEWS_SIGNUP_URL, client, HTTPStatus.OK, 'get'),
+        (NEWS_DETAIL_URL, client, HTTPStatus.OK, 'get'),
+        (NEWS_HOME_URL, client, HTTPStatus.OK, 'get'),
+        (COMMENT_EDIT_URL, AUTHOR_CLIENT, HTTPStatus.OK, 'get'),
         (COMMENT_DELETE_URL, AUTHOR_CLIENT, HTTPStatus.FOUND, 'post'),
+        (COMMENT_EDIT_URL, client, HTTPStatus.FOUND, 'get'),
+        (COMMENT_DELETE_URL, client, HTTPStatus.FOUND, 'post'),
+        (COMMENT_EDIT_URL, NOT_AUTHOR_CLIENT, HTTPStatus.NOT_FOUND, 'get'),
+        (COMMENT_DELETE_URL, NOT_AUTHOR_CLIENT, HTTPStatus.NOT_FOUND, 'post'),
     ),
 )
 def test_pages_availability_for_users(url, user, expected_status, method):
@@ -43,8 +47,8 @@ def test_pages_availability_for_users(url, user, expected_status, method):
 @pytest.mark.parametrize(
     'url, user, expected_redirect',
     (
-        (COMMENT_EDIT_URL, CLIENT, REDIRECT_URL_EDIT_COMMENT),
-        (COMMENT_DELETE_URL, CLIENT, REDIRECT_URL_DELETE_COMMENT),
+        (COMMENT_EDIT_URL, client, REDIRECT_URL_EDIT_COMMENT),
+        (COMMENT_DELETE_URL, client, REDIRECT_URL_DELETE_COMMENT),
     ),
 )
 def test_redirects(url, user, expected_redirect):
